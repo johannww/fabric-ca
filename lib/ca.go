@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"crypto/dsa"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -1177,6 +1178,16 @@ func validateMatchingKeys(cert *x509.Certificate, keyFile string) error {
 		}
 
 		if privKey.PublicKey.X.Cmp(pubKey.X) != 0 {
+			return errors.New("Public key and private key do not match")
+		}
+	case ed25519.PublicKey:
+		privKey, err := util.GetEd25519PrivateKey(keyPEM)
+		if err != nil {
+			return err
+		}
+
+		publicFromPriv := privKey.Public().(ed25519.PublicKey)
+		if !publicFromPriv.Equal(pubKey) {
 			return errors.New("Public key and private key do not match")
 		}
 	}

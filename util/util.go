@@ -9,6 +9,7 @@ package util
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -291,6 +292,8 @@ func GetECPrivateKey(raw []byte) (*ecdsa.PrivateKey, error) {
 			return key, nil
 		case *rsa.PrivateKey:
 			return nil, errors.New("Expecting EC private key but found RSA private key")
+		case ed25519.PrivateKey:
+			return nil, errors.New("Expecting EC private key but found Ed25519 private key")
 		default:
 			return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
 		}
@@ -315,11 +318,34 @@ func GetRSAPrivateKey(raw []byte) (*rsa.PrivateKey, error) {
 			return nil, errors.New("Expecting RSA private key but found EC private key")
 		case *rsa.PrivateKey:
 			return key, nil
+		case ed25519.PrivateKey:
+			return nil, errors.New("Expecting RSA private key but found Ed25519 private key")
 		default:
 			return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
 		}
 	}
 	return nil, errors.Wrap(err, "Failed parsing RSA private key")
+}
+
+func GetEd25519PrivateKey(raw []byte) (ed25519.PrivateKey, error) {
+	decoded, _ := pem.Decode(raw)
+	if decoded == nil {
+		return nil, errors.New("Failed to decode the PEM-encoded ECDSA key")
+	}
+	key, err2 := x509.ParsePKCS8PrivateKey(decoded.Bytes)
+	if err2 == nil {
+		switch key := key.(type) {
+		case ed25519.PrivateKey:
+			return key, nil
+		case *ecdsa.PrivateKey:
+			return nil, errors.New("Expecting Ed25519 private key but found EC private key")
+		case *rsa.PrivateKey:
+			return nil, errors.New("Expecting Ed25519 private key but found RSA private key")
+		default:
+			return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
+		}
+	}
+	return nil, errors.Wrap(err2, "Failed parsing EC private key")
 }
 
 // B64Encode base64 encodes bytes
