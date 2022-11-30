@@ -9,6 +9,7 @@ package util
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
@@ -135,6 +136,8 @@ func getBCCSPKeyOpts(kr *csr.KeyRequest, ephemeral bool) (opts bccsp.KeyGenOpts,
 		default:
 			return nil, errors.Errorf("Invalid ECDSA key size: %d", kr.Size())
 		}
+	case "ed25519":
+		return &bccsp.ED25519KeyGenOpts{Temporary: ephemeral}, nil
 	default:
 		return nil, errors.Errorf("Invalid algorithm: %s", kr.Algo())
 	}
@@ -228,6 +231,16 @@ func ImportBCCSPKeyFromPEM(keyFile string, myCSP bccsp.BCCSP, temporary bool) (b
 		return sk, nil
 	case *rsa.PrivateKey:
 		return nil, errors.Errorf("Failed to import RSA key from %s; RSA private key import is not supported", keyFile)
+	case ed25519.PrivateKey:
+		priv, err := PrivateKeyToDER(&key)
+		if err != nil {
+			return nil, errors.WithMessage(err, fmt.Sprintf("Failed to convert Ed25519 private key for '%s'", keyFile))
+		}
+		sk, err := myCSP.KeyImport(priv, &bccsp.ED25519PrivateKeyImportOpts{Temporary: temporary})
+		if err != nil {
+			return nil, errors.WithMessage(err, fmt.Sprintf("Failed to import Ed25519 private key for '%s'", keyFile))
+		}
+		return sk, nil
 	default:
 		return nil, errors.Errorf("Failed to import key from %s: invalid secret key type", keyFile)
 	}
