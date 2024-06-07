@@ -220,9 +220,31 @@ func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificates() ([]certdb.Certific
 	return crs, err
 }
 
+// GetUnexpiredCertificatesByLabel ...
+func (d *CertDBAccessor) GetUnexpiredCertificatesByLabel(labels []string) ([]certdb.CertificateRecord, error) {
+	// TODO: I am not sure about this implementation. Required for cloudfare/cfssl v1.6.5.
+	// TODO: complete comment
+	crs, err := d.accessor.GetUnexpiredCertificatesByLabel(labels)
+	if err != nil {
+		return nil, err
+	}
+	return crs, err
+}
+
 // GetRevokedAndUnexpiredCertificatesByLabel returns revoked and unexpired certificates matching the label
 func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabel(label string) ([]certdb.CertificateRecord, error) {
 	crs, err := d.accessor.GetRevokedAndUnexpiredCertificatesByLabel(label)
+	if err != nil {
+		return nil, err
+	}
+	return crs, err
+}
+
+// GetRevokedAndUnexpiredCertificatesByLabelSelectColumns ...
+func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label string) ([]certdb.CertificateRecord, error) {
+	// TODO: I am not sure about this implementation. Required for cloudfare/cfssl v1.6.5.
+	// TODO: complete comment
+	crs, err := d.accessor.GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label)
 	if err != nil {
 		return nil, err
 	}
