@@ -327,6 +327,7 @@ func GetRSAPrivateKey(raw []byte) (*rsa.PrivateKey, error) {
 	return nil, errors.Wrap(err, "Failed parsing RSA private key")
 }
 
+// GetEd25519PrivateKey get ed25519.PrivateKey from raw key
 func GetEd25519PrivateKey(raw []byte) (ed25519.PrivateKey, error) {
 	decoded, _ := pem.Decode(raw)
 	if decoded == nil {
