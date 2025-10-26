@@ -101,30 +101,14 @@ sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME 'SELECT value FROM properties WHERE (prop
 if [ $? != 0 ]; then
     ErrorMsg "Incorrect level found for 'certificate.level' in properties table"
 fi
-grep 'issued_at|TIMESTAMP' $TESTDIR/output.txt
-if [ $? != 0 ]; then
-    ErrorMsg "Database column 'issued_at' should be a TIMESTAMP field"
-fi
-grep 'issued_at|TIMESTAMP' $TESTDIR/output.txt
-if [ $? != 0 ]; then
-    ErrorMsg "Database column 'issued_at' should be a TIMESTAMP field"
-fi
-grep 'not_before|TIMESTAMP' $TESTDIR/output.txt
-if [ $? != 0 ]; then
-    ErrorMsg "Database column 'not_before' should be a TIMESTAMP field"
-fi
-grep 'metadata|JSON' $TESTDIR/output.txt
-if [ $? != 0 ]; then
-    ErrorMsg "Database column 'metadata' should be a JSON field"
-fi
-grep 'sans|JSON' $TESTDIR/output.txt
-if [ $? != 0 ]; then
-    ErrorMsg "Database column 'sans' should be a JSON field"
-fi
-grep 'common_name|TEXT' $TESTDIR/output.txt
-if [ $? != 0 ]; then
-    ErrorMsg "Database column 'common_name' should be a TEXT field"
-fi
+CERT_LEVEL_2_NEW_COLS=('issued_at|TIMESTAMP' 'not_before|TIMESTAMP' 'metadata|JSON' 'sans|JSON' 'common_name|TEXT')
+
+for prop in "${CERT_LEVEL_2_NEW_COLS[@]}"; do
+    grep "$prop" $TESTDIR/output.txt
+    if [ $? != 0 ]; then
+        ErrorMsg "Database column '$prop' should be present for level 2 certificates"
+    fi
+done
 
 rm $FABRIC_CA_SERVER_HOME/$DBNAME
 
