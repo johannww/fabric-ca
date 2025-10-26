@@ -260,6 +260,13 @@ if test $? -ne 1; then
     ErrorMsg "Should have failed to register $USERNAME"
 fi
 
+psql -d $DBNAME -c "SELECT value FROM properties WHERE property = 'certificate.level';" | grep "2"
+if [ $? != 0 ]; then
+    ErrorMsg "Incorrect level found for 'certificate.level' in properties table"
+fi
+psql -d $DBNAME -c "SELECT column_name, data_type FROM information_schema.columns where table_name = 'certificates';" | sed 's/[\t ]\+//g' > $TESTDIR/text.txt
+ensureColumnAndType "$TESTDIR/text.txt" "MySQL" ${CERT_LEVEL_2_NEW_COLS[@]}
+
 $SCRIPTDIR/fabric-ca_setup.sh -K
 
 # Check that the new schema took affect
