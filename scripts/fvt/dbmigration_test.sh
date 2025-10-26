@@ -97,9 +97,33 @@ grep 'level|INTEGER' $TESTDIR/output.txt
 if [ $? != 0 ]; then
     ErrorMsg "Database column 'level' should be a INTEGER field"
 fi
-sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME 'SELECT value FROM properties WHERE (property = "certificate.level")' | grep '1'
+sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME 'SELECT value FROM properties WHERE (property = "certificate.level")' | grep '2'
 if [ $? != 0 ]; then
     ErrorMsg "Incorrect level found for 'certificate.level' in properties table"
+fi
+grep 'issued_at|TIMESTAMP' $TESTDIR/output.txt
+if [ $? != 0 ]; then
+    ErrorMsg "Database column 'issued_at' should be a TIMESTAMP field"
+fi
+grep 'issued_at|TIMESTAMP' $TESTDIR/output.txt
+if [ $? != 0 ]; then
+    ErrorMsg "Database column 'issued_at' should be a TIMESTAMP field"
+fi
+grep 'not_before|TIMESTAMP' $TESTDIR/output.txt
+if [ $? != 0 ]; then
+    ErrorMsg "Database column 'not_before' should be a TIMESTAMP field"
+fi
+grep 'metadata|JSON' $TESTDIR/output.txt
+if [ $? != 0 ]; then
+    ErrorMsg "Database column 'metadata' should be a JSON field"
+fi
+grep 'sans|JSON' $TESTDIR/output.txt
+if [ $? != 0 ]; then
+    ErrorMsg "Database column 'sans' should be a JSON field"
+fi
+grep 'common_name|TEXT' $TESTDIR/output.txt
+if [ $? != 0 ]; then
+    ErrorMsg "Database column 'common_name' should be a TEXT field"
 fi
 
 rm $FABRIC_CA_SERVER_HOME/$DBNAME
