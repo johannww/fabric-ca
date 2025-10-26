@@ -26,7 +26,7 @@ sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME 'CREATE TABLE IF NOT EXISTS affiliations 
 sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME 'CREATE TABLE IF NOT EXISTS certificates (id VARCHAR(64), serial_number blob NOT NULL, authority_key_identifier blob NOT NULL, ca_label blob, status blob NOT NULL, reason int, expiry timestamp, revoked_at timestamp, pem blob NOT NULL, PRIMARY KEY(serial_number, authority_key_identifier));'
 sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME "INSERT INTO affiliations (name) VALUES ('org1');"
 sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME "INSERT INTO affiliations (name) VALUES ('org1.dep1');"
-sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME "INSERT INTO certificates (id, serial_number, authority_key_identifier) VALUES ('registrar', '1234', '12345');"
+sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME "INSERT INTO certificates (id, serial_number, authority_key_identifier, status, pem) VALUES ('registrar', '1234', '12345', '', '');"
 
 # Start up the server and the schema should get updated
 $SCRIPTDIR/fabric-ca_setup.sh -I -S -X -D -d sqlite3
