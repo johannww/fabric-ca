@@ -78,6 +78,10 @@ var versionToLevelsMapping = []versionLevels{
 		version: "1.4.0",
 		levels:  &db.Levels{Identity: 2, Affiliation: 1, Certificate: 1, Credential: 1, RAInfo: 1, Nonce: 1},
 	},
+	{
+		version: "1.5.16",
+		levels:  &db.Levels{Identity: 2, Affiliation: 1, Certificate: 2, Credential: 1, RAInfo: 1, Nonce: 1},
+	},
 }
 
 type versionLevels struct {
