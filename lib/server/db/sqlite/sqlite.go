@@ -151,7 +151,7 @@ func createAffiliationTable(tx Create) error {
 
 func createCertificateTable(tx Create) error {
 	log.Debug("Creating certificates table if it does not exist")
-	if _, err := tx.Exec("CreateCertificatesTable", "CREATE TABLE IF NOT EXISTS certificates (id VARCHAR(255), serial_number blob NOT NULL, authority_key_identifier blob NOT NULL, ca_label blob, status blob NOT NULL, reason int, expiry timestamp, revoked_at timestamp, pem blob NOT NULL, level INTEGER DEFAULT 0, PRIMARY KEY(serial_number, authority_key_identifier))"); err != nil {
+	if _, err := tx.Exec("CreateCertificatesTable", "CREATE TABLE IF NOT EXISTS certificates (id VARCHAR(255), serial_number blob NOT NULL, authority_key_identifier blob NOT NULL, ca_label blob, status blob NOT NULL, reason int, expiry timestamp, revoked_at timestamp, pem blob NOT NULL, level INTEGER DEFAULT 0, issued_at TIMESTAMP, not_before TIMESTAMP, metadata JSON, sans JSON, common_name TEXT, PRIMARY KEY(serial_number, authority_key_identifier))"); err != nil {
 		return errors.Wrap(err, "Error creating certificates table")
 	}
 	return nil

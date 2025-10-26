@@ -131,6 +131,26 @@ func (m *Migrator) MigrateCertificatesTable() error {
 			return err
 		}
 		fallthrough
+	case 1:
+		log.Debug("Upgrade certificates table to level 2")
+		_, err := tx.Exec(funcName, "ALTER TABLE certificates RENAME TO certificates_old")
+		if err != nil {
+			return err
+		}
+		err = createCertificateTable(tx)
+		if err != nil {
+			return err
+		}
+		// If coming from a table that did not yet have the "issued_at", "not_before", "metadata", "sans, "common_name" columns then we can only copy columns that exist in both the tables
+		_, err = tx.Exec(funcName, "INSERT INTO certificates (id, serial_number, authority_key_identifier, ca_label, status, reason, expiry, revoked_at, pem, level) SELECT id, serial_number, authority_key_identifier, ca_label, status, reason, expiry, revoked_at, pem, level FROM certificates_old")
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(funcName, "DROP TABLE certificates_old")
+		if err != nil {
+			return err
+		}
+		fallthrough
 
 	default:
 		_, err := tx.Exec(funcName, tx.Rebind("UPDATE properties SET value = ? WHERE (property = 'certificate.level')"), m.SrvLevels.Certificate)
