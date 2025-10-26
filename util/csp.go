@@ -104,7 +104,7 @@ func BccspBackedSigner(caFile, keyFile string, policy *config.Signing, csp bccsp
 }
 
 // getBCCSPKeyOpts generates a key as specified in the request.
-// This supports ECDSA and RSA.
+// This supports ECDSA, ED25519, and RSA.
 func getBCCSPKeyOpts(kr *csr.KeyRequest, ephemeral bool) (opts bccsp.KeyGenOpts, err error) {
 	if kr == nil {
 		return &bccsp.ECDSAKeyGenOpts{Temporary: ephemeral}, nil

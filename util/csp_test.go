@@ -96,6 +96,7 @@ func TestKeyGenerate(t *testing.T) {
 	t.Run("4096", func(t *testing.T) { testKeyGenerate(t, &csr.KeyRequest{A: "rsa", S: 4096}, false) })
 	t.Run("4097", func(t *testing.T) { testKeyGenerate(t, &csr.KeyRequest{A: "rsa", S: 4097}, true) })
 	t.Run("10000", func(t *testing.T) { testKeyGenerate(t, &csr.KeyRequest{A: "rsa", S: 10000}, true) })
+	t.Run("ed25519", func(t *testing.T) { testKeyGenerate(t, &csr.KeyRequest{A: "ed25519", S: 256}, false) })
 	t.Run("empty", func(t *testing.T) { testKeyGenerate(t, &csr.KeyRequest{}, true) })
 	t.Run("nil", func(t *testing.T) { testKeyGenerate(t, nil, false) })
 }
