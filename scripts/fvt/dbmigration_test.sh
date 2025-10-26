@@ -18,6 +18,19 @@ export FABRIC_CA_CLIENT_HOME="/tmp/db_migration/admin"
 export FABRIC_CA_SERVER_HOME="$TESTDIR"
 export CA_CFG_PATH="$TESTDIR"
 
+ensureColumnAndType () {
+    DB_INFO_FILE=$1
+    DB_TYPE=$2
+    shift 2
+    COLUMNS_AND_TYPES=$@
+    for prop in "${@:2}"; do
+        grep -i "$prop" $DB_INFO_FILE
+        if [ $? != 0 ]; then
+            ErrorMsg "Database column '$prop' is missing or of incorrect type for $DB_TYPE"
+        fi
+    done
+}
+
 echo "###### SQLITE #####"
 
 mkdir -p $FABRIC_CA_SERVER_HOME
@@ -102,13 +115,7 @@ if [ $? != 0 ]; then
     ErrorMsg "Incorrect level found for 'certificate.level' in properties table"
 fi
 CERT_LEVEL_2_NEW_COLS=('issued_at|TIMESTAMP' 'not_before|TIMESTAMP' 'metadata|JSON' 'sans|JSON' 'common_name|TEXT')
-
-for prop in "${CERT_LEVEL_2_NEW_COLS[@]}"; do
-    grep "$prop" $TESTDIR/output.txt
-    if [ $? != 0 ]; then
-        ErrorMsg "Database column '$prop' should be present for level 2 certificates"
-    fi
-done
+ensureColumnAndType "$TESTDIR/output.txt" "SQLite" ${CERT_LEVEL_2_NEW_COLS[@]}
 
 rm $FABRIC_CA_SERVER_HOME/$DBNAME
 
@@ -202,6 +209,12 @@ mysql --host=localhost --user=root --password=mysql --database=$DBNAME -e "SELEC
 if [ $? != 0 ]; then
     ErrorMsg "Database column 'pem' should have byte limit of 8192"
 fi
+mysql --host=localhost --user=root --password=mysql --database=$DBNAME -e "SELECT value FROM properties WHERE property = 'certificate.level';" | grep "2"
+if [ $? != 0 ]; then
+    ErrorMsg "Incorrect level found for 'certificate.level' in properties table"
+fi
+mysql --host=localhost --user=root --password=mysql --database=$DBNAME -e "SELECT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'certificates';" | sed 's/[\t ]\+/\|/g' > $TESTDIR/text.txt
+ensureColumnAndType "$TESTDIR/text.txt" "MySQL" ${CERT_LEVEL_2_NEW_COLS[@]}
 
 echo "###### POSTGRES ######"
 $SCRIPTDIR/fabric-ca_setup.sh -I -S -X -D -d postgres # Start up the server and the new schema should get created
