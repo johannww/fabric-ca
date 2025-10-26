@@ -162,6 +162,7 @@ ErrorMsg() {
    : ${rc:="RC"}
    echo -e "\033[31m ****** ERROR ****** $msg \033[0m"
    let $rc+=1
+   exit 1
 }
 
 ErrorExit() {
