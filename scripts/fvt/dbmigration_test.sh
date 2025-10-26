@@ -18,7 +18,7 @@ export FABRIC_CA_CLIENT_HOME="/tmp/db_migration/admin"
 export FABRIC_CA_SERVER_HOME="$TESTDIR"
 export CA_CFG_PATH="$TESTDIR"
 
-println "###### SQLITE #####"
+echo "###### SQLITE #####"
 
 mkdir -p $FABRIC_CA_SERVER_HOME
 sqlite3 $FABRIC_CA_SERVER_HOME/$DBNAME 'CREATE TABLE IF NOT EXISTS users (id VARCHAR(64), token bytea, type VARCHAR(64), affiliation VARCHAR(64), attributes TEXT, state INTEGER,  max_enrollments INTEGER);'
@@ -128,7 +128,7 @@ fi
 
 rm $FABRIC_CA_SERVER_HOME/$DBNAME
 
-println "###### MYSQL ######"
+echo "###### MYSQL ######"
 
 $SCRIPTDIR/fabric-ca_setup.sh -I -S -X -D -d mysql # Start up the server and the new schema should get created
 $SCRIPTDIR/fabric-ca_setup.sh -K # Kill the server
@@ -219,7 +219,7 @@ if [ $? != 0 ]; then
     ErrorMsg "Database column 'pem' should have byte limit of 8192"
 fi
 
-println "###### POSTGRES ######"
+echo "###### POSTGRES ######"
 $SCRIPTDIR/fabric-ca_setup.sh -I -S -X -D -d postgres # Start up the server and the new schema should get created
 $SCRIPTDIR/fabric-ca_setup.sh -K # Kill the server
 $SCRIPTDIR/fabric-ca_setup.sh -S -X -D -d postgres # Start up the server again and it should try to update the schema again, should result in no errors
