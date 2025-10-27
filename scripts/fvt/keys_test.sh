@@ -52,6 +52,24 @@ for len in ${ecl[*]}; do
 
 done
 
+function VerifyKeyEd25519() {
+   local key=$1
+   local sslcmd="pkey"
+
+   openssl $sslcmd -in $key -text 2>/dev/null | grep -q "ED25519"
+   return $?
+}
+
+echo "------> Testing ed25519"
+ktype=ed25519
+$SCRIPTDIR/fabric-ca_setup.sh -R
+$SCRIPTDIR/fabric-ca_setup.sh -I -X -S -n 1 -t $ktype
+# verify CA key type and length
+VerifyKeyEd25519 $CA_KEY || ErrorMsg "VerifyKey CA $ktype failed"
+$SCRIPTDIR/enroll.sh -t $ktype -d
+# verify EE key type and length
+VerifyKeyEd25519 $EE_KEY || ErrorMsg "VerifyKey EE $ktype failed"
+
 echo ""
 echo "**********************************************"
 echo ""

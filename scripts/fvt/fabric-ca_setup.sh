@@ -13,7 +13,7 @@ function usage() {
   echo "ARGS:"
   echo "  -d)   <DRIVER> - [sqlite3|mysql|postgres]"
   echo "  -n)   <FABRIC_CA_INSTANCES> - number of servers to start"
-  echo "  -t)   <KEYTYPE> - rsa|ecdsa"
+  echo "  -t)   <KEYTYPE> - rsa|ecdsa|ed25519"
   echo "  -l)   <KEYLEN> - ecdsa: 256|384|521; rsa 2048|3072|4096"
   echo "  -c)   <SRC_CERT> - pre-existing server cert"
   echo "  -k)   <SRC_KEY> - pre-existing server key"
