@@ -114,8 +114,8 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if allowedAttempts > 0 {
 		if attempts == ca.Config.Cfg.Identities.PasswordAttempts {
 			msg := fmt.Sprintf("Incorrect password entered %d times, max incorrect password limit of %d reached", attempts, ca.Config.Cfg.Identities.PasswordAttempts)
-			log.Errorf(msg)
-			return "", caerrors.NewHTTPErr(401, caerrors.ErrPasswordAttempts, msg)
+			log.Error(msg)
+			return "", caerrors.NewHTTPErr(401, caerrors.ErrPasswordAttempts, "%s", msg)
 		}
 	}
 
