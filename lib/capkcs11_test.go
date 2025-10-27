@@ -158,4 +158,51 @@ func TestCAInit(t *testing.T) {
 	if err == nil {
 		t.Fatal("init should have failed")
 	}
+
+	os.Chdir(orgwd)
+
+	confDir, err = cdTmpTestDir("TestCAInit")
+	if err != nil {
+		t.Fatal("failed to cd to tmp dir: ", err)
+	}
+	wd3, err := os.Getwd()
+	if err != nil {
+		t.Fatal("failed to get cwd: ", err)
+	}
+	t.Log("changed directory to ", wd3)
+	defer cleanupTmpfiles(t, wd3)
+
+	ca, err = newCA(cfgFile, &CAConfig{}, server, false)
+	if err != nil {
+		t.Fatal("newCA FAILED")
+	}
+
+	swo = &factory.SwOpts{}
+	pko = initSoftHsm(t)
+	ca.Config.CSP = &factory.FactoryOpts{Default: "PKCS11", SW: swo, PKCS11: pko}
+	ca.HomeDir = ""
+	err = ca.init(true)
+	t.Logf("ca.init error: %v", err)
+	if err != nil {
+		t.Fatalf("Server init should have failed: BCCSP err: %s", err)
+	}
+
+}
+
+func initSoftHsm(t *testing.T) *pkcs11.PKCS11Opts {
+	lib, pin, label := pkcs11.FindPKCS11Lib()
+	if lib == "" {
+		t.Fatalf("Could not find PKCS11 library. SoftHSM may not be installed")
+	}
+
+	p11 := &pkcs11.PKCS11Opts{
+		Library:  lib,
+		Pin:      pin,
+		Label:    label,
+		Hash:     "SHA2",
+		Security: 256,
+	}
+
+	return p11
+
 }
