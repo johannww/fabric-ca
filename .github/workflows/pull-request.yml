@@ -33,6 +33,8 @@ jobs:
         name: Install Go
         with:
           go-version: ${{ env.GO_VER }}
+      - run: scripts/setup_hsm.sh
+        name: Install SoftHSM
       - run: make dist checks all-tests docs
         name: Run Unit and Integration Tests
   fvt-tests:
