@@ -22,6 +22,11 @@ function postgresDBCleanup() {
 }
 
 function populatePostgresCertsTable() {
+    # Wait for the Postgres DB to be ready with $DBNAME database
+    until psql -d $DBNAME -c "\l" &> /dev/null; do
+        sleep 1
+    done
+
     # Expired and Not Revoked
     insertCertsTable "user1" "1111" "2222" "11/18/2017" "01/01/0001"
     insertCertsTable "user2" "1112" "2223" "1/18/2018" "01/01/0001"
@@ -210,6 +215,11 @@ function mysqlDBCleanup() {
 }
 
 function populateMySQLCertsTable() {
+    # Wait for the MySQL DB to be ready with $DBNAME database
+    until mysql --host=localhost --user=root --password=mysql --database=$DBNAME -e "SHOW DATABASES;" | grep "$DBNAME" &> /dev/null; do
+        sleep 1
+    done
+
     # Expired and Not Revoked
     insertMySQLCertsTable "user1" "1111" "2222" "2017/11/18" "0000/00/00"
     insertMySQLCertsTable "user2" "1112" "2223" "2018/01/18" "0000/00/00"
