@@ -66,7 +66,7 @@ type ed25519PublicKey struct {
 // Bytes converts this key to its byte representation,
 // if this operation is allowed.
 func (k *ed25519PublicKey) Bytes() (raw []byte, err error) {
-	raw, err = x509.MarshalPKIXPublicKey(k.pub)
+	raw, err = x509.MarshalPKIXPublicKey(*(k.pub))
 	if err != nil {
 		return nil, fmt.Errorf("Failed marshalling key [%s]", err)
 	}

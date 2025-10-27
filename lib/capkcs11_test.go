@@ -13,6 +13,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hyperledger/fabric-ca/api"
 	dbutil "github.com/hyperledger/fabric-ca/lib/server/db/util"
 	"github.com/hyperledger/fabric-lib-go/bccsp/factory"
 	"github.com/hyperledger/fabric-lib-go/bccsp/pkcs11"
@@ -172,14 +173,22 @@ func TestCAInit(t *testing.T) {
 	t.Log("changed directory to ", wd3)
 	defer cleanupTmpfiles(t, wd3)
 
-	ca, err = newCA(cfgFile, &CAConfig{}, server, false)
-	if err != nil {
-		t.Fatal("newCA FAILED")
-	}
-
 	swo = &factory.SwOpts{}
 	pko = initSoftHsm(t)
-	ca.Config.CSP = &factory.FactoryOpts{Default: "PKCS11", SW: swo, PKCS11: pko}
+	config := &CAConfig{
+		CSR: api.CSRInfo{
+			KeyRequest: &api.KeyRequest{
+				Algo: "ed25519",
+			},
+		},
+	}
+
+	config.CSP = &factory.FactoryOpts{Default: "PKCS11", SW: swo, PKCS11: pko}
+	ca, err = newCA(cfgFile, config, server, true)
+	if err != nil {
+		t.Fatalf("newCA FAILED: %s", err)
+	}
+
 	ca.HomeDir = ""
 	err = ca.init(true)
 	t.Logf("ca.init error: %v", err)

@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package pkcs11
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -240,15 +241,28 @@ func (csp *Provider) GetKey(ski []byte) (bccsp.Key, error) {
 		return key, nil
 	}
 
-	pubKey, isPriv, err := csp.getECKey(ski)
+	pubKey, isPriv, err := csp.getKey(ski)
 	if err != nil {
 		logger.Debugf("Key not found using PKCS11: %v", err)
 		return csp.BCCSP.GetKey(ski)
 	}
 
-	var key bccsp.Key = &ecdsaPublicKey{ski, pubKey}
-	if isPriv {
-		key = &ecdsaPrivateKey{ski, ecdsaPublicKey{ski, pubKey}}
+	var key bccsp.Key
+
+	switch pubKey := pubKey.(type) {
+	case *ecdsa.PublicKey:
+		key = &ecdsaPublicKey{ski, pubKey}
+		if isPriv {
+			key = &ecdsaPrivateKey{ski, ecdsaPublicKey{ski, pubKey}}
+		}
+	case ed25519.PublicKey:
+		ed25519Key := pubKey
+		key = &ed25519PublicKey{ski, &ed25519Key}
+		if isPriv {
+			key = &ed25519PrivateKey{ski, ed25519PublicKey{ski, &ed25519Key}}
+		}
+	default:
+		return nil, fmt.Errorf("Unsupported key type found in PKCS11 module")
 	}
 
 	csp.cacheKey(ski, key)
@@ -418,7 +432,7 @@ func (csp *Provider) returnSession(session pkcs11.SessionHandle) {
 }
 
 // Look for an EC key by SKI, stored in CKA_ID
-func (csp *Provider) getECKey(ski []byte) (pubKey *ecdsa.PublicKey, isPriv bool, err error) {
+func (csp *Provider) getKey(ski []byte) (pubKey crypto.PublicKey, isPriv bool, err error) {
 	session, err := csp.getSession()
 	if err != nil {
 		return nil, false, err
@@ -437,7 +451,7 @@ func (csp *Provider) getECKey(ski []byte) (pubKey *ecdsa.PublicKey, isPriv bool,
 		return nil, false, fmt.Errorf("public key not found [%s] for SKI [%s]", err, hex.EncodeToString(ski))
 	}
 
-	ecpt, marshaledOid, err := csp.ecPoint(session, publicKey)
+	ecpt, marshaledOid, err := csp.ecOrEd25519Point(session, publicKey)
 	if err != nil {
 		return nil, false, fmt.Errorf("public key not found [%s] for SKI [%s]", err, hex.EncodeToString(ski))
 	}
@@ -446,6 +460,10 @@ func (csp *Provider) getECKey(ski []byte) (pubKey *ecdsa.PublicKey, isPriv bool,
 	_, err = asn1.Unmarshal(marshaledOid, curveOid)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed Unmarshalling Curve OID [%s]\n%s", err.Error(), hex.EncodeToString(marshaledOid))
+	}
+
+	if curveOid.Equal(oidEd25519) {
+		return ed25519.PublicKey(ecpt), isPriv, nil
 	}
 
 	curve := namedCurveFromOID(*curveOid)
@@ -564,7 +582,7 @@ func (csp *Provider) generateECKey(curve asn1.ObjectIdentifier, ephemeral bool) 
 		return nil, nil, fmt.Errorf("P11: keypair generate failed [%s]", err)
 	}
 
-	ecpt, _, err := csp.ecPoint(session, pub)
+	ecpt, _, err := csp.ecOrEd25519Point(session, pub)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error querying EC-point: [%s]", err)
 	}
@@ -662,7 +680,7 @@ func (csp *Provider) generateED25519Key(curve asn1.ObjectIdentifier, ephemeral b
 		return nil, nil, fmt.Errorf("P11: keypair generate failed [%s]", err)
 	}
 
-	ecpt, _, err := csp.ed25519Point(session, pub)
+	ecpt, _, err := csp.ecOrEd25519Point(session, pub)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error querying EC-point: [%s]", err)
 	}
@@ -948,7 +966,14 @@ func (csp *Provider) findKeyPairFromSKI(session pkcs11.SessionHandle, ski []byte
 // 00000020  19 de ef 32 46 50 68 02  24 62 36 db ed b1 84 7b  |...2FPh.$b6....{|
 // 00000030  93 d8 40 c3 d5 a6 b7 38  16 d2 35 0a 53 11 f9 51  |..@....8..5.S..Q|
 // 00000040  fc a7 16                                          |...|
-func (csp *Provider) ecPoint(session pkcs11.SessionHandle, key pkcs11.ObjectHandle) (ecpt, oid []byte, err error) {
+//
+// In the case of ed25519, SoftHSM returns a leading 0x32 byte after the 0x04
+// which indicates the length of the point (32 bytes):
+//
+// 00000000  04 20 9d 61 b1 9d ef fd  5c 4e 6c 9c f5 8c 2c 3f
+// 00000010  f4 0a 49 82 16 1b 32 b8  0a 4d f4 6e 8d e9 8d 0b
+// 00000020  a7 0b
+func (csp *Provider) ecOrEd25519Point(session pkcs11.SessionHandle, key pkcs11.ObjectHandle) (ecpt, oid []byte, err error) {
 	template := []*pkcs11.Attribute{
 		pkcs11.NewAttribute(pkcs11.CKA_EC_POINT, nil),
 		pkcs11.NewAttribute(pkcs11.CKA_EC_PARAMS, nil),
@@ -972,55 +997,14 @@ func (csp *Provider) ecPoint(session pkcs11.SessionHandle, key pkcs11.ObjectHand
 			} else if byte(0x04) == a.Value[0] && byte(0x04) == a.Value[2] {
 				logger.Debugf("Detected SoftHSM bug, trimming leading 0x04 0xXX")
 				ecpt = a.Value[2:len(a.Value)]
-			} else {
-				ecpt = a.Value
-			}
-		} else if a.Type == pkcs11.CKA_EC_PARAMS {
-			logger.Debugf("EC point: attr type %d/0x%x, len %d\n%s\n", a.Type, a.Type, len(a.Value), hex.Dump(a.Value))
-
-			oid = a.Value
-		}
-	}
-	if oid == nil || ecpt == nil {
-		return nil, nil, fmt.Errorf("CKA_EC_POINT not found, perhaps not an EC Key?")
-	}
-
-	return ecpt, oid, nil
-}
-
-// TODO: document like ecPoint()
-func (csp *Provider) ed25519Point(session pkcs11.SessionHandle, key pkcs11.ObjectHandle) (ecpt, oid []byte, err error) {
-	template := []*pkcs11.Attribute{
-		pkcs11.NewAttribute(pkcs11.CKA_EC_POINT, nil),
-		pkcs11.NewAttribute(pkcs11.CKA_EC_PARAMS, nil),
-	}
-
-	attr, err := csp.ctx.GetAttributeValue(session, key, template)
-	if err != nil {
-		return nil, nil, fmt.Errorf("PKCS11: get(EC point) [%s]", err)
-	}
-
-	for _, a := range attr {
-		if a.Type == pkcs11.CKA_EC_POINT {
-			logger.Debugf("EC point: attr type %d/0x%x, len %d\n%s\n", a.Type, a.Type, len(a.Value), hex.Dump(a.Value))
-
-			// TODO: I could test with softhsm. What about opencryptoki?
-
-			// workarounds
-			// if ((len(a.Value) % 2) == 0) &&
-			// 	(byte(0x04) == a.Value[0]) &&
-			// 	(byte(0x04) == a.Value[len(a.Value)-1]) {
-			// 	logger.Debugf("Detected opencryptoki bug, trimming trailing 0x04")
-			// 	ecpt = a.Value[0 : len(a.Value)-1] // Trim trailing 0x04
-			// }
-			if byte(0x04) == a.Value[0] && byte(0x20) == a.Value[1] {
-				logger.Debugf("Detected SoftHSM bug, trimming leading 0x04 0x20")
+			} else if byte(0x04) == a.Value[0] && byte(0x20) == a.Value[1] {
+				logger.Debugf("Detected SoftHSM Ed25519 bug, trimming leading 0x04 0x20")
 				ecpt = a.Value[2:len(a.Value)]
 			} else {
 				ecpt = a.Value
 			}
 		} else if a.Type == pkcs11.CKA_EC_PARAMS {
-			logger.Debugf("ED25519 point: attr type %d/0x%x, len %d\n%s\n", a.Type, a.Type, len(a.Value), hex.Dump(a.Value))
+			logger.Debugf("EC or ED25519 point: attr type %d/0x%x, len %d\n%s\n", a.Type, a.Type, len(a.Value), hex.Dump(a.Value))
 
 			oid = a.Value
 		}
