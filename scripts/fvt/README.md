@@ -13,7 +13,7 @@ docker-clean`.
 Once the test image is successfully built, execute
 
 ```sh
-docker run -v $PWD:/opt/gopath/src/github.com/hyperledger/fabric-ca hyperledger/fabric-ca-fvt
+docker run -v $PWD:/build/fabric-ca hyperledger/fabric-ca-fvt
 ```
 
 By default, the resulting container will run `scripts/run_fvt_tests` in the
@@ -26,7 +26,7 @@ To start a command-line instance of the test container without automatically
 running the tests, issue
 
 ```sh
-docker run -v $PWD:/opt/gopath/src/github.com/hyperledger/fabric-ca -ti hyperledger/fabric-ca-fvt bash
+docker run -v $PWD:/build/fabric-ca -ti hyperledger/fabric-ca-fvt bash
 ```
 
 This mounts the source code from the host into the container. You can make any
