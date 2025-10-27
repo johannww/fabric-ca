@@ -60,7 +60,10 @@ function insertCertsTable() {
     pem=`cat cert.pem`
 
     # Store the generated certificate in the certificates table
-    psql -d $DBNAME -c "INSERT INTO certificates (id, serial_number, authority_key_identifier, ca_label, status, reason, expiry, revoked_at, pem, level) VALUES ('$id', '$serial', '$aki', 'ca', 'active', '0', '$expiry', '$revokedAt', '$pem', '1')"
+    local err=$(psql -d $DBNAME -c "INSERT INTO certificates (id, serial_number, authority_key_identifier, ca_label, status, reason, expiry, revoked_at, pem, level) VALUES ('$id', '$serial', '$aki', 'ca', 'active', '0', '$expiry', '$revokedAt', '$pem', '1')" 2>&1 1>/dev/null)
+    if [ "$err" != "" ]; then
+        ErrorMsg "Failed to insert certificate for $id into Postgres certificates table. error: ${err}"
+    fi
 }
 
 function assertContainsUserCert() {
@@ -253,7 +256,10 @@ function insertMySQLCertsTable() {
     pem=`cat cert.pem`
 
     # Store the generated certificate in the certificates table
-    mysql --host=localhost --user=root --password=mysql --database=$DBNAME -e "INSERT INTO certificates (id, serial_number, authority_key_identifier, ca_label, status, reason, expiry, revoked_at, pem, level) VALUES ('$id', '$serial', '$aki', 'ca', 'active', '0', '$expiry', '$revokedAt', '$pem', '1')"
+    local err=$(mysql --host=localhost --user=root --password=mysql --database=$DBNAME -e "INSERT INTO certificates (id, serial_number, authority_key_identifier, ca_label, status, reason, expiry, revoked_at, pem, level) VALUES ('$id', '$serial', '$aki', 'ca', 'active', '0', '$expiry', '$revokedAt', '$pem', '1')" 2>&1 1>/dev/null | grep -vi "warning")
+    if [ "$err" != "" ]; then
+        ErrorMsg "Failed to insert certificate for $id into MySQL certificates table. error: ${err}"
+    fi
 }
 
 #####################################################################
