@@ -129,6 +129,27 @@ func (m *Migrator) MigrateCertificatesTable() error {
 			return err
 		}
 		fallthrough
+	case 1:
+		log.Debug("Upgrade certificates table to level 2")
+		cfsslv1_6_5NewCols := [][]string{
+			{"issued_at", "TIMESTAMP"}, {"not_before", "TIMESTAMP"},
+			{"metadata", "JSON"}, {"sans", "JSON"}, {"common_name", "TEXT"}}
+		for _, col := range cfsslv1_6_5NewCols {
+			var res []string
+			query := "SELECT column_name  FROM information_schema.columns WHERE table_name='certificates' and column_name='" + col[0] + "'"
+			err := tx.Select(funcName, &res, tx.Rebind(query))
+			if err != nil {
+				return err
+			}
+			if len(res) > 0 {
+				continue
+			}
+			_, err = tx.Exec(funcName, "ALTER TABLE certificates ADD COLUMN "+col[0]+" "+col[1])
+			if err != nil {
+				return err
+			}
+		}
+		fallthrough
 
 	default:
 		_, err := tx.Exec(funcName, tx.Rebind("UPDATE properties SET value = ? WHERE (property = 'certificate.level')"), m.SrvLevels.Certificate)
