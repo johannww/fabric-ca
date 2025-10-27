@@ -99,34 +99,34 @@ pollFabricCa
 populatePostgresCertsTable
 
 #### Enroll user first, so subsequent commands can be called ####
-$FABRIC_CA_CLIENTEXEC enroll -u "http://$USERNAME:$USERPSWD@$CA_HOST_ADDRESS:$PROXY_PORT" -H $CA_CFG_PATH/$USERNAME
+$FABRIC_CA_CLIENTEXEC enroll -u "https://$USERNAME:$USERPSWD@$CA_HOST_ADDRESS:$PROXY_PORT" $TLSOPT -H $CA_CFG_PATH/$USERNAME
 if [ $? != 0 ]; then
-    ErrorMsg "Failed to enroll user"
+    ErrorMsg "Failed to enroll user on Postgres database"
 fi
 
 #### Test various filters for the list certificates commands #####
 
 ## List all certificates ##
-$FABRIC_CA_CLIENTEXEC certificate list -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "all" user1 user2 user3 user4 user5 user6 user7 user8
 assertNumberOfCerts 11
 
 ## List certificate by ID ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --id user1 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --id user1 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--id" user1
 assertNumberOfCerts 1
 
 ## List certificate by Serial Number ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --serial 1111 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --serial 1111 -H $CA_CFG_PATH/$USERNAME > output.txt
 users=(user1 user3)
 assertContainsUserCert "--serial" user1 user3
 assertNumberOfCerts 3
 
 ## List certificate by Serial Number and ID ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --serial 1111 --id user1 -H $CA_CFG_PATH/$USERNAME --store $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --serial 1111 --id user1 -H $CA_CFG_PATH/$USERNAME --store $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--serial --id" user1
 assertNotContainsUserCert "--serial --id" user3
 assertNumberOfCerts 1
@@ -136,13 +136,13 @@ fi
 
 ## List certificate by AKI ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --aki 2223 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --aki 2223 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--aki" user2 user3
 assertNumberOfCerts 2
 
 ## List certificate by Serial Number, AKI, and ID ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --serial 1111 --aki 2224 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --serial 1111 --aki 2224 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--serial --aki --id" user3
 assertNumberOfCerts 1
 grep "2223" output.txt
@@ -150,50 +150,50 @@ test $? == 1 || ErrorMsg "Incorrectly got certificate for 'user3'"
 
 ## List certificate within expiration range ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-03-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-03-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration date::" user5 user6 user7
 assertNotContainsUserCert "--expiration date::" user1 user2 user3 user4
 assertNumberOfCerts 5
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration ::date" user1
 assertNotContainsUserCert "--expiration ::date" user2
 assertNumberOfCerts 1
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-01-01::2018-03-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-01-01::2018-03-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration date1::date2" user2 user3 user4 user8
 assertNotContainsUserCert "--expiration data1::date2" user1
 assertNumberOfCerts 5
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-01-01::2018-03-01 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-01-01::2018-03-01 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration date1::date2" user3
 assertNotContainsUserCert "--expiration date1::date2" user2
 assertNumberOfCerts 2
 
 ## List certificate within revocation range ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --revocation 2018-02-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation 2018-02-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation date::" user5
 assertNumberOfCerts 1
 
-$FABRIC_CA_CLIENTEXEC certificate list --revocation ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation ::date" user6
 assertNotContainsUserCert "--revocation ::date" user5
 assertNumberOfCerts 1
 
-$FABRIC_CA_CLIENTEXEC certificate list --revocation 2018-01-01::2018-02-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation 2018-01-01::2018-02-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation date1::date2" user7
 assertNotContainsUserCert "--revocation data1::date2" user5 user6
 assertNumberOfCerts 2
 
 ## List certificates within expiration range but have not been revoked ##
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-01-20::2018-01-30 --notrevoked -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-01-20::2018-01-30 --notrevoked -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration --notrevoekd" user4
 assertNotContainsUserCert "--expiration --notrevoked" user8
 assertNumberOfCerts 1
 
 ## List certificates within revocation range but have not expired ##
-$FABRIC_CA_CLIENTEXEC certificate list --revocation 2018-01-01::2018-01-30 --notexpired -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation 2018-01-01::2018-01-30 --notexpired -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation --notexpired" user7
 assertNotContainsUserCert "--revocation --notexpired" user8
 assertNumberOfCerts 1
@@ -258,34 +258,34 @@ pollFabricCa
 populateMySQLCertsTable
 
 #### Enroll user first, so subsequent commands can be called ####
-$FABRIC_CA_CLIENTEXEC enroll -u "http://$USERNAME:$USERPSWD@$CA_HOST_ADDRESS:$PROXY_PORT" -H $CA_CFG_PATH/$USERNAME
+$FABRIC_CA_CLIENTEXEC enroll $TLSOPT -u "https://$USERNAME:$USERPSWD@$CA_HOST_ADDRESS:$PROXY_PORT" -H $CA_CFG_PATH/$USERNAME
 if [ $? != 0 ]; then
-    ErrorMsg "Failed to enroll user"
+    ErrorMsg "Failed to enroll user on MySQL database"
 fi
 
 #### Test various filters for the list certificates commands #####
 
 ## List all certificates ##
-$FABRIC_CA_CLIENTEXEC certificate list -H $CA_CFG_PATH/$USERNAME 2>&1 | tee output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT -H $CA_CFG_PATH/$USERNAME 2>&1 | tee output.txt
 assertContainsUserCert "all" user1 user2 user3 user4 user5 user6 user7 user8
 assertNumberOfCerts 11
 
 ## List certificate by ID ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --id user1 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --id user1 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--id" user1
 assertNumberOfCerts 1
 
 ## List certificate by Serial Number ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --serial 1111 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --serial 1111 -H $CA_CFG_PATH/$USERNAME > output.txt
 users=(user1 user3)
 assertContainsUserCert "--serial" user1 user3
 assertNumberOfCerts 3
 
 ## List certificate by Serial Number and ID ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --serial 1111 --id user1 -H $CA_CFG_PATH/$USERNAME --store $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --serial 1111 --id user1 -H $CA_CFG_PATH/$USERNAME --store $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--serial --id" user1
 assertNotContainsUserCert "--serial --id" user3
 assertNumberOfCerts 1
@@ -295,13 +295,13 @@ fi
 
 ## List certificate by AKI ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --aki 2223 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --aki 2223 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--aki" user2 user3
 assertNumberOfCerts 2
 
 ## List certificate by Serial Number, AKI, and ID ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --serial 1111 --aki 2224 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --serial 1111 --aki 2224 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--serial --aki --id" user3
 assertNumberOfCerts 1
 grep "2223" output.txt
@@ -309,50 +309,50 @@ test $? == 1 || ErrorMsg "Incorrectly got certificate for 'user3'"
 
 ## List certificate within expiration range ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-03-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-03-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration date::" user5 user6 user7
 assertNotContainsUserCert "--expiration date::" user1 user2 user3 user4
 assertNumberOfCerts 5
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration ::date" user1
 assertNotContainsUserCert "--expiration ::date" user2
 assertNumberOfCerts 1
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-01-01::2018-03-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-01-01::2018-03-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration date1::date2" user2 user3 user4 user8
 assertNotContainsUserCert "--expiration data1::date2" user1
 assertNumberOfCerts 5
 
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-01-01::2018-03-01 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-01-01::2018-03-01 --id user3 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration date1::date2" user3
 assertNotContainsUserCert "--expiration date1::date2" user2
 assertNumberOfCerts 2
 
 ## List certificate within revocation range ##
 
-$FABRIC_CA_CLIENTEXEC certificate list --revocation 2018-02-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation 2018-02-01:: -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation date::" user5
 assertNumberOfCerts 1
 
-$FABRIC_CA_CLIENTEXEC certificate list --revocation ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation ::2018-01-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation ::date" user6
 assertNotContainsUserCert "--revocation ::date" user5
 assertNumberOfCerts 1
 
-$FABRIC_CA_CLIENTEXEC certificate list --revocation 2018-01-01::2018-02-01 -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation 2018-01-01::2018-02-01 -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation date1::date2" user7
 assertNotContainsUserCert "--revocation data1::date2" user5 user6
 assertNumberOfCerts 2
 
 ## List certificates within expiration range but have not been revoked ##
-$FABRIC_CA_CLIENTEXEC certificate list --expiration 2018-01-20::2018-01-30 --notrevoked -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --expiration 2018-01-20::2018-01-30 --notrevoked -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--expiration --notrevoekd" user4
 assertNotContainsUserCert "--expiration --notrevoked" user8
 assertNumberOfCerts 1
 
 ## List certificates within revocation range but have not expired ##
-$FABRIC_CA_CLIENTEXEC certificate list --revocation 2018-01-01::2018-01-30 --notexpired -H $CA_CFG_PATH/$USERNAME > output.txt
+$FABRIC_CA_CLIENTEXEC certificate list $TLSOPT --revocation 2018-01-01::2018-01-30 --notexpired -H $CA_CFG_PATH/$USERNAME > output.txt
 assertContainsUserCert "--revocation --notexpired" user7
 assertNotContainsUserCert "--revocation --notexpired" user8
 assertNumberOfCerts 1
