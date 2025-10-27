@@ -2903,7 +2903,7 @@ func TestPrometheusMetricsE2E(t *testing.T) {
 	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="InsertAffiliation"} 11`))
 	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="LoginComplete"} 1`))
 	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="MigrateAffiliationsTable"} 4`))
-	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="MigrateCertificatesTable"} 4`))
+	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="MigrateCertificatesTable"} 7`))
 	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="MigrateUsersTable"} 7`))
 	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Exec",func_name="ResetIncorrectLoginAttempts"} 1`))
 	gt.Expect(body).To(ContainSubstring(`db_api_request_count{ca_name="ca",dbapi_name="Get",func_name="GetProperty"} 12`))

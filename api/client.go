@@ -316,7 +316,7 @@ type TimeRange struct {
 // If ReuseKey is set, reenrollment requests will reuse the existing private
 // key.
 type KeyRequest struct {
-	Algo     string `json:"algo" yaml:"algo" help:"Specify key algorithm"`
+	Algo     string `json:"algo" yaml:"algo" help:"Specify key algorithm ('ecdsa', 'rsa', 'ed25519')"`
 	Size     int    `json:"size" yaml:"size" help:"Specify key size"`
 	ReuseKey bool   `json:"reusekey" yaml:"reusekey" help:"Reuse existing key during reenrollment"`
 }
