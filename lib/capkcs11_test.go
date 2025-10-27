@@ -184,7 +184,7 @@ func TestCAInit(t *testing.T) {
 	err = ca.init(true)
 	t.Logf("ca.init error: %v", err)
 	if err != nil {
-		t.Fatalf("Server init should have failed: BCCSP err: %s", err)
+		t.Fatalf("Server init should not have failed: BCCSP err: %s", err)
 	}
 
 }
