@@ -102,7 +102,7 @@ for driver in mysql postgres sqlite3; do
    # Enroll admin, admin2, notadmin, testUser
    i=-1
    while test $((i++)) -lt 5; do
-      enroll "${USERS[i]}" "${PSWDS[i]}" "$CA_CFG_PATH/${USERS[i]}"
+      enroll "${USERS[i]}" "${PSWDS[i]}"
    done
 
    # notadmin cannot revoke
