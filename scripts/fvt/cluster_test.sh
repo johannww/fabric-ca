@@ -88,7 +88,7 @@ function enrollUsers() {
      --csr.hosts ${USERNAME}${ca}-${user}@fab-client.raleigh.ibm.com \
      --csr.hosts ${USERNAME}${ca}-${user}.fabric.raleigh.ibm.com \
      --caname ca$ca >> $dir/admin$ca/log.txt 2>&1
-   test "${USERNAME}${ca}-${user}" = "$(openssl x509 -in $dir/${USERNAME}${ca}-${user}/$ENROLLCERT -noout -subject | awk -F'= ' '{print $NF}')"
+   openssl x509 -in $dir/${USERNAME}${ca}-${user}/$ENROLLCERT -noout -subject | awk -F'= ' '{print $NF}' | grep -q "CN=${USERNAME}${ca}-${user}"
 }
 
 function reenrollUsers() {
@@ -103,7 +103,7 @@ function reenrollUsers() {
    $FABRIC_CA_CLIENTEXEC reenroll --debug $TLSOPT \
      -u ${PROTO}@localhost:$port \
      --caname ca$ca >> $dir/admin$ca/log.txt 2>&1
-   test "${USERNAME}${ca}-${user}" = "$(openssl x509 -in $dir/${USERNAME}${ca}-${user}/$ENROLLCERT -noout -subject | awk -F'= ' '{print $NF}')"
+   openssl x509 -in $dir/${USERNAME}${ca}-${user}/$ENROLLCERT -noout -subject | awk -F'= ' '{print $NF}' | grep -q "CN=${USERNAME}${ca}-${user}"
 }
 
 function register() {

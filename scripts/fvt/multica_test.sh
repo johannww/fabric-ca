@@ -194,7 +194,7 @@ for driver in postgres mysql; do
          # Grab the serial number of user$i$j cert
          SN_UC="$(openssl x509 -noout -serial -in $c | awk -F'=' '{print toupper($2)}')"
          # and the auth keyid of notadmin cert - translate upper to lower case
-         AKI_UC=$(openssl x509 -noout -text -in $c |awk '/keyid/ {gsub(/ *keyid:|:/,"",$1);print toupper($0)}')
+         AKI_UC=$(openssl x509 -noout -text -in $c | awk '/Authority Key Identifier/{getline; gsub(/[^0-9A-Fa-f]/,""); print toupper($0)}')
          # Revoke the certs
          echo "SN  ---> $SN_UC"
          echo "AKI ---> $AKI_UC"

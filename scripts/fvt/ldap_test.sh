@@ -48,7 +48,7 @@ revokeEcert() {
    result="$3"
 
    certFile=$UDIR/$user/msp/signcerts/cert.pem
-   AKI=$(openssl x509 -noout -text -in $certFile |awk '/keyid/ {gsub(/ *keyid:|:/,"",$1);print toupper($0)}')
+   AKI=$(openssl x509 -noout -text -in "$certFile" | awk '/Authority Key Identifier/{getline; gsub(/[^0-9A-Fa-f]/,""); print toupper($0)}')
    SN=$(openssl x509 -noout -serial -in $certFile | awk -F'=' '{print toupper($2)}')
 
    case "$result" in

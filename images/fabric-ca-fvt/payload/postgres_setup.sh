@@ -17,7 +17,7 @@ cp $FABRIC_CA_DATA/$TLS_BUNDLE $PGDATA || let RC+=1
 cp $FABRIC_CA_DATA/$TLS_SERVER_CERT $PGDATA || let RC+=1
 cp $FABRIC_CA_DATA/$TLS_SERVER_KEY  $PGDATA || let RC+=1
 # postgres insists on restricted access to keys
-chown $PGUSER.$PGUSER $PGDATA/*pem || let RC+=1
+chown $PGUSER:$PGUSER $PGDATA/*pem || let RC+=1
 chmod 600 $PGDATA/FabricTlsServer*.pem || let RC+=1
 sed -i "s/\(^[[:blank:]]*\)#*\([[:blank:]]*ssl[[:blank:]]*=[[:blank:]]*\).*/\1\2on/;\
 s/\(^[[:blank:]]*\)#*\([[:blank:]]*max_connections[[:blank:]]*=[[:blank:]]*\).*/\1\22000/;\

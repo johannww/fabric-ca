@@ -73,7 +73,7 @@ revokedRevoked="-1 revoked"
 TEST_RESULTS=("$revokedRevoked" "$revokedRevoked" "$enrolledRevoked" "$enrolledRevoked" "$enrolledGood" "$enrolledGood" )
 
 cd $TESTDATA
-python -m SimpleHTTPServer $HTTP_PORT &
+python -m http.server $HTTP_PORT &
 HTTP_PID=$!
 pollSimpleHttp
 echo $HTTP_PID
@@ -121,12 +121,12 @@ for driver in mysql postgres sqlite3; do
    # Grab the serial number of notadmin cert
    SN_UC="$(openssl x509 -noout -serial -in $CA_CFG_PATH/${USERS[2]}/msp/signcerts/cert.pem | awk -F'=' '{print toupper($2)}')"
    # and the auth keyid of notadmin cert - translate upper to lower case
-   AKI_UC=$(openssl x509 -noout -text -in $CA_CFG_PATH/${USERS[2]}/msp/signcerts/cert.pem |awk '/keyid/ {gsub(/ *keyid:|:/,"",$1);print toupper($0)}')
+   AKI_UC=$(openssl x509 -noout -text -in $CA_CFG_PATH/${USERS[2]}/msp/signcerts/cert.pem | awk '/Authority Key Identifier/{getline; gsub(/[^0-9A-Fa-f]/,""); print toupper($0)}')
 
    # Grab the serial number of testUser cert
    SN_LC="$(openssl x509 -noout -serial -in $CA_CFG_PATH/${USERS[3]}/msp/signcerts/cert.pem | awk -F'=' '{print tolower($2)}')"
    # and the auth keyid of testUser cert - translate upper to lower case
-   AKI_LC=$(openssl x509 -noout -text -in $CA_CFG_PATH/${USERS[3]}/msp/signcerts/cert.pem |awk '/keyid/ {gsub(/ *keyid:|:/,"",$1);print tolower($0)}')
+   AKI_LC=$(openssl x509 -noout -text -in $CA_CFG_PATH/${USERS[3]}/msp/signcerts/cert.pem | awk '/Authority Key Identifier/{getline; gsub(/[^0-9A-Fa-f]/,""); print toupper($0)}')
 
    # Revoke the certs
    echo "=========================> REVOKING by --eid"
