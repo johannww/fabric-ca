@@ -93,6 +93,6 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/hyperledger/fabric-lib-go v1.1.2 => github.com/johannww/fabric-lib-go v0.0.0-20251027223008-78616e119bdb
+replace github.com/hyperledger/fabric-lib-go v1.1.2 => github.com/johannww/fabric-lib-go v0.0.0-20251028012912-e045df621fbb
 
 replace github.com/miekg/pkcs11 v1.1.1 => github.com/miekg/pkcs11 v1.1.1-0.20220104135131-d721e3fc6d90
