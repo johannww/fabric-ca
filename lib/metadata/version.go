@@ -24,12 +24,12 @@ const (
 	// AffiliationLevel is the current level of affiliations
 	AffiliationLevel = 1
 	// CertificateLevel is the current level of certificates
-	CertificateLevel = 1
+	CertificateLevel = 2
 )
 
 // Version specifies fabric-ca-client/fabric-ca-server version
 // It is defined by the Makefile and passed in with ldflags
-var Version = "1.5.15"
+var Version = "1.5.16"
 
 // GetVersionInfo returns version information for the fabric-ca-client/fabric-ca-server
 func GetVersionInfo(prgName string) string {
