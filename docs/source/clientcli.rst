@@ -28,7 +28,7 @@ Fabric-CA Client's CLI
           --caname string                Name of CA
           --csr.cn string                The common name field of the certificate signing request
           --csr.hosts strings            A list of comma-separated host names in a certificate signing request
-          --csr.keyrequest.algo string   Specify key algorithm
+          --csr.keyrequest.algo string   Specify key algorithm ('ecdsa', 'rsa', 'ed25519')
           --csr.keyrequest.reusekey      Reuse existing key during reenrollment
           --csr.keyrequest.size int      Specify key size
           --csr.names strings            A list of comma-separated CSR names of the form <name>=<value> (e.g. C=CA,O=Org1)

@@ -35,7 +35,7 @@ Fabric-CA Server's CLI
           --crlsizelimit int                          Size limit of an acceptable CRL in bytes (default 512000)
           --csr.cn string                             The common name field of the certificate signing request to a parent fabric-ca-server
           --csr.hosts strings                         A list of comma-separated host names in a certificate signing request to a parent fabric-ca-server
-          --csr.keyrequest.algo string                Specify key algorithm
+          --csr.keyrequest.algo string                Specify key algorithm ('ecdsa', 'rsa', 'ed25519')
           --csr.keyrequest.reusekey                   Reuse existing key during reenrollment
           --csr.keyrequest.size int                   Specify key size
           --csr.serialnumber string                   The serial number in a certificate signing request to a parent fabric-ca-server
